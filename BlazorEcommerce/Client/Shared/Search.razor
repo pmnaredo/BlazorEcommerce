@@ -41,7 +41,7 @@
     public void SearchProducts()
     {
         if (searchText != null && !string.IsNullOrEmpty(searchText.Trim()))
-            NavigationManager.NavigateTo($"search/{searchText}");
+            NavigationManager.NavigateTo($"search/{searchText}/1");
     }
 
     public async Task HandleSearch(KeyboardEventArgs args)
