@@ -1,4 +1,5 @@
-﻿using BlazorEcommerce.Shared;
+﻿using BlazorEcommerce.Client.Services.AuthService;
+using BlazorEcommerce.Shared;
 using BlazorEcommerce.Shared.DTOs;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -9,25 +10,20 @@ namespace BlazorEcommerce.Client.Services.OrderService
     public class OrderService : IOrderService
     {
         private readonly HttpClient _http;
-        private readonly AuthenticationStateProvider _authStateProvider;
+        private readonly IAuthService _authService;
         private readonly NavigationManager _navigationManager;
 
-        public OrderService(HttpClient http, AuthenticationStateProvider authStateProvider,
+        public OrderService(HttpClient http, IAuthService authService,
             NavigationManager navigationManager)
         {
             _http = http;
-            _authStateProvider = authStateProvider;
+            _authService = authService;
             _navigationManager = navigationManager;
-        }
-
-        private async Task<bool> IsUserAuthenticated()
-        {
-            return (await _authStateProvider.GetAuthenticationStateAsync()).User.Identity.IsAuthenticated;
         }
 
         public async Task PlaceOrder()
         {
-            if (await IsUserAuthenticated())
+            if (await _authService.IsUserAuthenticated())
             {
                 await _http.PostAsync("api/order", null);
             }
