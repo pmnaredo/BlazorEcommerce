@@ -22,6 +22,47 @@ namespace BlazorEcommerce.Server.Services.OrderService
             _authService = authService;
         }
 
+        public async Task<ServiceResponse<OrderDetailsResponse>> GetOrderDetails(int orderId)
+        {
+            var response = new ServiceResponse<OrderDetailsResponse>();
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+                .Include(o => o.OrderItems)     // repetition required for another theninclude
+                .ThenInclude(oi => oi.ProductType)
+                .Where(o => o.UserId == _authService.GetUserId() && o.Id == orderId)
+                .FirstOrDefaultAsync();
+
+            if (order == null)
+            {
+                response.Success = false;
+                response.Message = "Order not found.";
+                return response;
+            }
+
+            var products = new List<OrderDetailsProductResponse>();
+            order.OrderItems.ForEach(oi => products.Add(new OrderDetailsProductResponse()
+            {
+                ProductId = oi.ProductId,
+                Title = oi.Product.Title,
+                ProductType = oi.ProductType.Name,
+                ImageUrl = oi.Product.ImageUrl,
+                Quantity = oi.Quantity,
+                TotalPrice = oi.TotalPrice
+            }));
+
+            var orderDetailsResponse = new OrderDetailsResponse()
+            {
+                OrderDate = order.OrderDate,
+                TotalPrice = order.TotalPrice,
+                Products = products
+            };
+
+            response.Data = orderDetailsResponse;
+
+            return response;
+        }
+
         public async Task<ServiceResponse<List<OrderOverviewResponse>>> GetOrders()
         {
             var response = new ServiceResponse<List<OrderOverviewResponse>>();
