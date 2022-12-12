@@ -1,5 +1,6 @@
 ﻿using BlazorEcommerce.Server.Services.OrderService;
 using BlazorEcommerce.Shared;
+using BlazorEcommerce.Shared.DTOs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,5 +24,11 @@ namespace BlazorEcommerce.Server.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        public async Task<ActionResult<ServiceResponse<List<OrderOverviewResponse>>>> GetOrders()
+        {
+            var result = await _orderService.GetOrders();
+            return Ok(result);
+        }
     }
 }
