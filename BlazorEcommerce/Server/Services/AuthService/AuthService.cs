@@ -151,5 +151,11 @@ namespace BlazorEcommerce.Server.Services.AuthService
         {
             return int.Parse(_httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
+
+        public string GetUserEmail()
+        {
+            return _httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Name);
+        }
+
     }
 }
