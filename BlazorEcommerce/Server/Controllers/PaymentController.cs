@@ -1,4 +1,5 @@
 ﻿using BlazorEcommerce.Server.Services.PaymentService;
+using BlazorEcommerce.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -22,5 +23,16 @@ namespace BlazorEcommerce.Server.Controllers
             var session = await _paymentService.CreateCheckoutSession();
             return Ok(session.Url);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<ServiceResponse<bool>>> FulFillOrder()
+        {
+            var response = await _paymentService.FulFillOrder(Request);
+            if (!response.Success)
+                return BadRequest(response.Message);
+
+            return Ok(response);
+        }
+
     }
 }
