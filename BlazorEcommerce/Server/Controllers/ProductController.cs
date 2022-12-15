@@ -2,6 +2,7 @@
 using BlazorEcommerce.Server.Services.ProductService;
 using BlazorEcommerce.Shared;
 using BlazorEcommerce.Shared.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -21,7 +22,15 @@ namespace BlazorEcommerce.Server.Controllers
             _productService = productService;
         }
 
-        [HttpGet]   // path: "api/"
+        [HttpGet("admin"), Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ServiceResponse<List<Product>>>> GetAdminProducts()
+        {
+            var result = await _productService.GetAdminProducts();
+
+            return Ok(result);
+        }
+
+        [HttpGet]
         public async Task<ActionResult<ServiceResponse<List<Product>>>> GetProducts()
         {
             var result = await _productService.GetProductsAsync();
