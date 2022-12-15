@@ -18,6 +18,9 @@
                     <button type="submit" class="btn btn-primary">
                         <i class="oi oi-cloud-upload"></i>
                     </button>
+                    <button class="btn btn-primary" @onclick="CancelEditing">
+                        <i class="oi oi-circle-x"></i>
+                    </button>
                 </div>
             </div>
         </EditForm>
@@ -29,7 +32,7 @@
                 @productType.Name
             </div>
             <div class="col">
-                <button class="btn btn-primary" @onclick="@(() => EditProductType(productType))">
+                <button class="btn btn-primary" @onclick="@(() => EditProductType(productType))" disabled="@editing">
                     <i class="oi oi-pencil"></i>
                 </button>
             </div>
@@ -42,6 +45,7 @@
 
 @code {
     ProductType editingProductType = null;
+    bool editing = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,6 +60,7 @@
 
     private void EditProductType(ProductType productType)
     {
+        editing = true;
         productType.Editing = true;
         editingProductType = productType;
     }
@@ -72,6 +77,14 @@
         else
             await ProductTypeService.UpdateProductType(editingProductType);
         editingProductType = new ProductType();
+        editing = false;
+    }
+
+    private async Task CancelEditing()
+    {
+        editingProductType = new ProductType();
+        editing = false;
+        await ProductTypeService.GetProductTypes();
     }
 
 }
