@@ -40,6 +40,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                 product = await _context.Products
                     .Include(p => p.Variants.Where(v => !v.Deleted))
                     .ThenInclude(v => v.ProductType)
+                    .Include(p => p.Images)
                     .FirstOrDefaultAsync(p => p.Id == productId && !p.Deleted);
             }
             else
@@ -47,6 +48,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                 product = await _context.Products
                     .Include(p => p.Variants.Where(v => v.Visible && !v.Deleted))
                     .ThenInclude(v => v.ProductType)
+                    .Include(p => p.Images)
                     .FirstOrDefaultAsync(p => p.Id == productId && p.Visible && !p.Deleted);
             }
 
@@ -75,6 +77,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                 Data = await _context.Products
                     .Where(p => p.Category.Url.ToLower().Equals(categoryUrl.ToLower()) && p.Visible && !p.Deleted)
                     .Include(p => p.Variants.Where(v => v.Visible && !v.Deleted))
+                    .Include(p => p.Images)
                     .ToListAsync()
             };
 
@@ -90,6 +93,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                     && (p.Title.ToLower().Contains(searchText.ToLower())
                     || p.Description.ToLower().Contains(searchText.ToLower())))
                 .Include(p => p.Variants.Where(v => v.Visible && !v.Deleted))
+                .Include(p => p.Images)
                 .Skip((page - 1) * (int)pageResults)
                 .Take((int)pageResults)
                 .ToListAsync();
@@ -157,6 +161,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                 Data = await _context.Products
                     .Where(p => p.Featured && p.Visible && !p.Deleted)
                     .Include(p => p.Variants.Where(v => v.Visible && !v.Deleted))
+                    .Include(p => p.Images)
                     .ToListAsync()
             };
 
@@ -171,6 +176,7 @@ namespace BlazorEcommerce.Server.Services.ProductService
                     .Where(p => !p.Deleted)
                     .Include(p => p.Variants.Where(v => !v.Deleted))
                     .ThenInclude(v => v.ProductType)
+                    .Include(p => p.Images)
                     .ToListAsync()
             };
 
@@ -193,7 +199,9 @@ namespace BlazorEcommerce.Server.Services.ProductService
 
         public async Task<ServiceResponse<Product>> UpdateProduct(Product product)
         {
-            var dbProduct = await _context.Products.FindAsync(product.Id);
+            var dbProduct = await _context.Products
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == product.Id);
             if (dbProduct == null)
             {
                 return new ServiceResponse<Product>
@@ -209,6 +217,13 @@ namespace BlazorEcommerce.Server.Services.ProductService
             dbProduct.CategoryId = product.CategoryId;
             dbProduct.Visible = product.Visible;
             dbProduct.Featured = product.Featured;
+
+            // Reset product images (note: image ids are modified!)
+            //
+            var productImages = dbProduct.Images;
+            _context.Images.RemoveRange(productImages);
+
+            dbProduct.Images = product.Images;
 
             foreach (var variant in product.Variants)
             {
